@@ -24,7 +24,43 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+// Date endpoint
+app.get('/api/:date', (req, res) => {
+  const date = req.params.date;
+  const iso8601Pattern = /^\d{4}-\d{2}-\d{2}[T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z]?$/;
+  const unixPattern = /^(?:\d{10}|\d{13})$/;
 
+  let inDate;
+
+  if (iso8601Pattern.test(date)) {
+    inDate = new Date(date);
+  } else if (unixPattern.test(date)) {
+    inDate = new Date(Number(date));
+  } else {
+    res.status(400).json({ meaasge: 'Bad Request' })
+  }
+
+  const unix = inDate.getTime();
+  const utc = convertTimeToRFC822(inDate);
+
+  res.json({ unix, utc });
+});
+
+// Convert Time to RFC 822
+const convertTimeToRFC822 = (date) => {
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const dayOfWeek = daysOfWeek[date.getUTCDay()];
+  const dayOfMonth = date.getUTCDate();
+  const month = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+  const hrs = String(date.getUTCHours()).padStart(2, '0');
+  const mins = String(date.getUTCMinutes()).padStart(2, '0');
+  const secs = String(date.getUTCSeconds()).padStart(2, '0');
+
+  return `${dayOfWeek} ${dayOfMonth} ${month} ${year} ${hrs}:${mins}:${secs} GMT`
+}
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
