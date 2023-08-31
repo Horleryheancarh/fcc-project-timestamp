@@ -37,7 +37,7 @@ app.get('/api/:date', (req, res) => {
   } else if (unixPattern.test(date)) {
     inDate = new Date(Number(date));
   } else {
-    res.status(400).json({ meaasge: 'Bad Request' })
+    res.json({ error: 'Invalid Date' })
   }
 
   const unix = inDate.getTime();
