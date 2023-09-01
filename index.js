@@ -24,24 +24,35 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+app.get('/api', (req, res) => {
+  let date = new Date();
+  let unix = date.getTime();
+  let utc = convertTimeToRFC822(date);
+
+  res.json({ unix, utc });
+})
+
 // Date endpoint
-app.get('/api/:date', (req, res) => {
-  const date = req.params.date;
+app.get('/api/:date?', (req, res) => {
+  let date = req.params.date;
   const iso8601Pattern = /^\d{4}-\d{2}-\d{2}[T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z]?$/;
   const unixPattern = /^(?:\d{10}|\d{13})$/;
 
-  let inDate;
+  let unix = new Date();
+  let utc = convertTimeToRFC822(unix);
 
-  if (iso8601Pattern.test(date)) {
-    inDate = new Date(date);
-  } else if (unixPattern.test(date)) {
-    inDate = new Date(Number(date));
-  } else {
-    res.json({ error: 'Invalid Date' })
+  if (date) {
+    if (iso8601Pattern.test(date)) {
+      date = new Date(date);
+    } else if (unixPattern.test(date)) {
+      date = new Date(Number(date));
+    } else {
+      res.json({ error: 'Invalid Date' })
+    }
   }
 
-  const unix = inDate.getTime();
-  const utc = convertTimeToRFC822(inDate);
+  unix = date.getTime();
+  utc = convertTimeToRFC822(date);
 
   res.json({ unix, utc });
 });
@@ -63,6 +74,6 @@ const convertTimeToRFC822 = (date) => {
 }
 
 // listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
+var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
